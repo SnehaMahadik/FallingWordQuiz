@@ -2,7 +2,8 @@
 <resources>
     <style name="qaText">
         <item name="android:textStyle">bold</item>
-        <item name="android:textSize">18sp</item>
+        <item name="android:textSize">20sp</item>
+        <item name="android:textAllCaps">true</item>
         <item name="android:textColor">#0f5578</item>
     </style>
 </resources>
