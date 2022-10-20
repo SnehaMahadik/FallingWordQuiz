@@ -1,19 +1,17 @@
 package com.babbel.fallingwords.ui.quiz
 
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.View.*
 import android.view.ViewGroup
 import android.view.animation.Animation
 import android.view.animation.Animation.AnimationListener
-import android.view.animation.AnimationUtils
 import android.view.animation.AnimationUtils.loadAnimation
 import androidx.fragment.app.Fragment
 import com.babbel.fallingwords.R
-import com.babbel.fallingwords.model.Word
 import com.babbel.fallingwords.databinding.FragmentFirstBinding
+import com.babbel.fallingwords.model.Word
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 import kotlin.random.Random
@@ -26,6 +24,7 @@ class QuizFragment : Fragment(), QuizDataMVP.View {
 
     private var _binding: FragmentFirstBinding? = null
     private var score = 0
+    private var numberOfQuestions = 5
     var counter = 0
     private val binding get() = _binding!!
     var randomWord: Word? = null
@@ -86,10 +85,10 @@ class QuizFragment : Fragment(), QuizDataMVP.View {
             override fun onAnimationEnd(animation: Animation?) {
                 setupViewsOnEndQuiz()
                 binding.apply {
-                    if (counter <= 5) {
+                    if (counter <= numberOfQuestions) {
                         buttonStartQuiz.text = getString(R.string.button_text_next)
                     }
-                    if (counter == 5) {
+                    if (counter == numberOfQuestions) {
                         buttonStartQuiz.text = getString(R.string.get_my_score)
                     }
                     if (buttonStartQuiz.text == getString(R.string.get_my_score)) {
