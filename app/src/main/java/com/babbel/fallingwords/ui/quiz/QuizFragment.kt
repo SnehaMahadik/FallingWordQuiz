@@ -1,27 +1,36 @@
-package com.babbel.fallingwords
+package com.babbel.fallingwords.ui.quiz
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.View.*
 import android.view.ViewGroup
 import android.view.animation.Animation
 import android.view.animation.Animation.AnimationListener
+import android.view.animation.AnimationUtils
+import android.view.animation.AnimationUtils.loadAnimation
 import androidx.fragment.app.Fragment
-import com.babbel.fallingwords.data.Word
+import com.babbel.fallingwords.R
+import com.babbel.fallingwords.model.Word
 import com.babbel.fallingwords.databinding.FragmentFirstBinding
+import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
+import kotlin.random.Random
 
+@AndroidEntryPoint
+class QuizFragment : Fragment(), QuizDataMVP.View {
 
-/**
- * A simple [Fragment] subclass as the default destination in the navigation.
- */
-class QuizFragment : Fragment() {
+    @Inject
+    lateinit var presenter: QuizDataMVP.Presenter
 
     private var _binding: FragmentFirstBinding? = null
     private var score = 0
     var counter = 0
     private val binding get() = _binding!!
-     var randomWord : Word? =null
+    var randomWord: Word? = null
+    private var wordsDataList: List<Word>? = null
+    private lateinit var  animationFalling : Animation
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -31,18 +40,43 @@ class QuizFragment : Fragment() {
         return binding.root
     }
 
-    override fun onResume() {
-        super.onResume()
-    }
-
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        val animationFalling =
-            android.view.animation.AnimationUtils.loadAnimation(context, R.anim.falling)
 
+        animationFalling = loadAnimation(context, R.anim.falling)
+        wordsDataList = presenter.getQuizData()
+
+        setupAnimationListener()
+        binding.buttonStartQuiz.setOnClickListener {
+            startQuiz()
+        }
+    }
+
+    private fun startQuiz() {
+        // start animation
+        binding.apply {
+            buttonCorrect.isClickable = true
+            if (buttonStartQuiz.text != getString(R.string.get_my_score)) {
+                textviewAnswer.startAnimation(animationFalling)
+            } else {
+                textviewScore.visibility = VISIBLE
+                textviewScore.text =
+                    String.format(resources.getString(R.string.your_score_is), score)
+                buttonStartQuiz.visibility = GONE
+            }
+            buttonCorrect.setOnClickListener {
+                it.isClickable = false
+                score += 1
+            }
+        }
+    }
+
+    private fun setupAnimationListener() {
         animationFalling.setAnimationListener(object : AnimationListener {
             override fun onAnimationStart(animation: Animation?) {
-                randomWord = context?.let { Utils.getRandomWord(it, "words.json") }
+                val randomIndex =
+                    wordsDataList?.size?.let { Random(System.currentTimeMillis()).nextInt(1, it) }
+                randomWord = randomIndex?.let { wordsDataList?.get(it) }
                 setupViewsOnStartQuiz(randomWord)
                 counter += 1
             }
@@ -64,28 +98,9 @@ class QuizFragment : Fragment() {
                 }
             }
         })
-
-        binding.buttonStartQuiz.setOnClickListener {
-            // start animation
-            binding.apply {
-                buttonCorrect.isClickable = true
-                if (buttonStartQuiz.text != getString(R.string.get_my_score)) {
-                    textviewAnswer.startAnimation(animationFalling)
-                } else {
-                    textviewScore.visibility = VISIBLE
-                    textviewScore.text =
-                        String.format(resources.getString(R.string.your_score_is), score)
-                    buttonStartQuiz.visibility = GONE
-                }
-                buttonCorrect.setOnClickListener {
-                    it.isClickable = false
-                    score += 1
-                }
-            }
-        }
     }
 
-    private fun setupViewsOnEndQuiz() {
+    override fun setupViewsOnEndQuiz() {
         binding.apply {
             textviewAnswer.visibility = INVISIBLE
             textviewQuestion.visibility = INVISIBLE
@@ -96,7 +111,7 @@ class QuizFragment : Fragment() {
 
     }
 
-    private fun setupViewsOnStartQuiz(randomWord: Word?) {
+    override fun setupViewsOnStartQuiz(randomWord: Word?) {
         binding.apply {
             group1.visibility = VISIBLE
             textviewQuestion.text = randomWord?.text_eng
