@@ -19,8 +19,5 @@ object Utils {
 
         val listWords = object : TypeToken<List<Word>>() {}.type
         return Gson().fromJson(jsonString, listWords)
-
-//        val randomIndex= Random(System.currentTimeMillis()).nextInt(1, list.size)
-//        return list[randomIndex]
     }
 }
